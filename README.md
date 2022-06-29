@@ -1,2 +1,2 @@
-# multil-trans
+# multi-trans
 Multilingual translation
