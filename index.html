@@ -2,35 +2,89 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>翻訳</title>
+    <title>音声認識テスト</title>
+    <style>
+        div {
+            width: 90vw;
+            height: 80vh;
+            background-color: azure;
+        }
+    </style>
 </head>
 <body>
-<script>
-    // let lang = 'en_ja'
-    // let text = "Queen Elizabeth II ends historic jubilee with vow to carry on"
-    let lang = 'ja_en'
-    let text = "次の二つの例は、同じことを二つの異なった方法で書いたものです。 一つは、if 文を、もう一つは switch 文を使っています。"
-    const ajax = async () => {
-        try {
-            const url = 'minhon.php'
-            const res = await fetch(url, {
-                method: 'POST',
-                body: JSON.stringify({
-                    lang: lang,
-                    text: text
-                }),
-                headers: {
-                    'Content-Type': 'application/json'
+    <p>マイクの使用を許可してから話しかけてください。</p>
+    <!-- <p>SSL 通信ならマイクの許可は 1 度だけ求められ、そうでない場合は毎回求められます。</p> -->
+    <button id="start-btn">start</button>
+    <button id="stop-btn">stop</button>
+    <div id="result-div"></div>
+    <script>
+        const startBtn = document.querySelector('#start-btn')
+        const stopBtn = document.querySelector('#stop-btn')
+        const resultDiv = document.querySelector('#result-div')
+
+        SpeechRecognition = webkitSpeechRecognition || SpeechRecognition
+        let recognition = new SpeechRecognition()
+
+        recognition.lang = 'ja-JP' // 日本語
+        // recognition.lang = 'en-US' // アメリカ英語
+        // recognition.lang = 'en-GB' // イギリス英語
+        // recognition.lang = 'zh-CN' // 中国語
+        // recognition.lang = 'ko-KR' // 韓国語
+        recognition.interimResults = true // 認識中で暫定の認識結果を得る
+        recognition.continuous = true // 認識を継続する
+
+        let finalTranscript = '' // 確定した(黒の)認識結果
+
+        recognition.onresult = (event) => {
+            let interimTranscript = '' // 暫定(灰色)の認識結果
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                let transcript = event.results[i][0].transcript
+                if (event.results[i].isFinal) { // 発言が終了したら
+                    finalTranscript += transcript
+                } else {
+                    interimTranscript = transcript
                 }
-            })
-            const json = await res.json()
-            console.log(json)
-        } catch (err) {
-            console.error(err)
+            }
+            resultDiv.innerHTML = finalTranscript + '<i style="color:#ddd;">' + interimTranscript + '</i><br>'
+
+            // let lang = 'en_ja'
+            let lang = 'ja_en'
+            // let text = "Queen Elizabeth II ends historic jubilee with vow to carry on"
+            // let text = "次の二つの例は、同じことを二つの異なった方法で書いたものです。 一つは、if文を、もう一つはswitch 文を使っています。"
+            let text = finalTranscript
+            const ajax = async () => {
+                try {
+                    const url = 'minhon.php'
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            lang: lang,
+                            text: text
+                        }),
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    const json = await res.json()
+                    console.log(json)
+                    resultDiv.innerHTML += '<i style="color:#00f;">' + json['translation'] + '</i><br>'
+                    finalTranscript = ''
+                } catch (err) {
+                    console.error(err)
+                }
+            }
+            ajax()
+
         }
-    }
-    ajax()
-</script>
+
+        startBtn.onclick = () => {
+            recognition.start()
+        }
+        stopBtn.onclick = () => {
+            recognition.stop()
+        }
+    </script>
 </body>
 </html>
