@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>翻訳</title>
+</head>
+<body>
+<script>
+    // let lang = 'en_ja'
+    // let text = "Queen Elizabeth II ends historic jubilee with vow to carry on"
+    let lang = 'ja_en'
+    let text = "次の二つの例は、同じことを二つの異なった方法で書いたものです。 一つは、if文を、もう一つはswitch 文を使っています。"
+    const ajax = async () => {
+        try {
+            const url = 'minhon.php'
+            const res = await fetch(url, {
+                method: 'POST',
+                body: JSON.stringify({
+                    lang: lang,
+                    text: text
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            const json = await res.json()
+            console.log(json)
+        } catch (err) {
+            console.error(err)
+        }
+    }
+    ajax()
+</script>
+</body>
+</html>
